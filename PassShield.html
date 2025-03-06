@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PassShield</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        input {
+            width: 300px;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px;
+            background-color: #ff9800;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .password {
+            margin-top: 15px;
+            padding: 12px;
+            background: white;
+            color: black;
+            font-size: 16px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-weight: bold;
+            display: inline-block;
+            width: auto;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: white;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <h2>🔒 PassShield</h2>
+    <input type="email" id="email" placeholder="Adresse Email" oninput="generatePassword()">
+    <input type="text" id="site" placeholder="Nom du Site Internet" oninput="generatePassword()">
+    <input type="password" id="key" placeholder="Clé de Sécurité" oninput="generatePassword()">
+    <button onclick="copyPassword()">📋 Copier le mot de passe</button>
+    <div id="password" class="password"></div>
+    <p><a href="https://password.kaspersky.com/fr/" target="_blank" style="color: white; text-decoration: underline; font-size: 14px; margin-top: 10px; display: inline-block;">🔗 Tester la sécurité de votre mot de passe</a></p>
+
+    <div class="footer">
+        <p>🔐 Méthode de cryptage : SHA-256, avec ajout de caractères spéciaux, majuscules et chiffres pour un mot de passe sécurisé et unique.</p>
+        <p>© CRAVERO-CONSULTING 2025</p>
+    </div>
+
+    <script>
+        async function hashSHA256(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        
+        async function generatePassword() {
+            let email = document.getElementById("email").value.trim();
+            let site = document.getElementById("site").value.trim();
+            let key = document.getElementById("key").value.trim();
+            
+            if (!email || !site || !key) {
+                document.getElementById("password").innerText = "Veuillez remplir les trois champs.";
+                return;
+            }
+            
+            let base = email.toLowerCase() + site.toLowerCase() + key;
+            let hash = await hashSHA256(base);
+            let specialChars = "!@#$%^&*()_+[]{}";
+            let numbers = "0123456789";
+            let uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            
+            let password = hash.slice(0, 15); 
+            password += specialChars[base.length % specialChars.length];
+            password += numbers[base.length % numbers.length];
+            password += uppercase[base.length % uppercase.length];
+            
+            document.getElementById("password").innerText = password;
+        }
+        
+        function copyPassword() {
+            let password = document.getElementById("password").innerText;
+            if (password && password !== "Veuillez remplir les trois champs.") {
+                navigator.clipboard.writeText(password);
+                // alert("Mot de passe copié !"); // Notification supprimée
+            }
+        }
+    </script>
+</body>
+</html>
